@@ -17,8 +17,9 @@ if event == 'İzin Ver':
 
     # Kamera için ana arayüz
     layout = [[sg.Text('SynapSign', size=(20, 1), font=('Any', 18), text_color='black', justification='center')],
-              [sg.Image(filename='snap.png', key='image')],
-              [sg.Button('Exit', size=(10, 1), pad=((200, 0), 3), font='Helvetica 14')]]
+              [sg.Image(filename='synapsign.png', key='image')],
+              [sg.Text('', size=(20, 1), font=('Any', 18), justification='left', key='text_output')],
+              [sg.Button('Clear', size=(10, 1), font='Helvetica 14'), sg.Button('Exit', size=(10, 1), font='Helvetica 14')]]
 
     window = sg.Window('SynapSign', layout, finalize=True, element_justification='center', location=(0, 0))
 
@@ -38,11 +39,18 @@ if event == 'İzin Ver':
                    12: 'M', 13: 'N', 14: 'O', 15: 'P', 16: 'Q', 17: 'R', 18: 'S', 19: 'T', 20: 'U', 21: 'V', 22: 'W',
                    23: 'X', 24: 'Y', 25: 'Z', 26:'What a Shame!'}
 
+    text_output = ''  # Harflerin tutulacağı metin çıktısı
+    prev_letter = None  # Bir önceki harfi tutacak değişken
+
     while True:
         event, values = window.read(timeout=20)
 
         if event == sg.WIN_CLOSED or event == 'Exit':
             break
+        elif event == 'Clear':
+            # Clear butonuna basıldığında text_output'u temizle
+            text_output = ''
+            window['text_output'].update(value=text_output)
 
         ret, frame = cap.read()
 
@@ -99,6 +107,13 @@ if event == 'İzin Ver':
                 cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 0, 0), 2)
                 cv2.putText(frame, predicted_character, (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 1.3, (0, 0, 0), 3,
                             cv2.LINE_AA)
+
+                # Bir önceki harf ile şu anki harfi karşılaştır
+                if prev_letter != predicted_character:
+                    text_output += predicted_character
+                    prev_letter = predicted_character
+                
+                window['text_output'].update(value=text_output)
 
         imgbytes = cv2.imencode('.png', frame)[1].tobytes()
         window['image'].update(data=imgbytes)
