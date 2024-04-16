@@ -2,9 +2,11 @@ import pickle
 import cv2
 import mediapipe as mp
 import numpy as np
+import xgboost as xgb
 
-# Modelin yüklenmesi
-model_dict = pickle.load(open('./model.p', 'rb'))
+# Model yükleme (dictionary'den modeli ayıkla)
+with open('model_xgboost.p', 'rb') as f:
+    model_dict = pickle.load(f)
 model = model_dict['model']
 
 cap = cv2.VideoCapture(0)
@@ -17,7 +19,7 @@ hands = mp_hands.Hands(static_image_mode=True, min_detection_confidence=0.5)
 
 labels_dict = {0: 'A', 1: 'B', 2: 'C', 3: 'D', 4: 'E', 5: 'F', 6: 'G', 7: 'H', 8: 'I', 9: 'J', 10: 'K', 11: 'L',
                12: 'M', 13: 'N', 14: 'O', 15: 'P', 16: 'Q', 17: 'R', 18: 'S', 19: 'T', 20: 'U', 21: 'V', 22: 'W',
-               23: 'X', 24: 'Y', 25: 'Z', 26:'What a Shame!'}
+               23: 'X', 24: 'Y', 25: 'Z', 26: 'What a Shame!'}
 
 while True:
     data_aux = []
@@ -48,29 +50,31 @@ while True:
                 x_.append(x)
                 y_.append(y)
 
-            for i in range(len(hand_landmarks.landmark)):
-                x = hand_landmarks.landmark[i].x
-                y = hand_landmarks.landmark[i].y
-                data_aux.append(x - min(x_))
-                data_aux.append(y - min(y_))
+        for i in range(len(hand_landmarks.landmark)):
+            x = hand_landmarks.landmark[i].x
+            y = hand_landmarks.landmark[i].y
+            data_aux.append(x - min(x_))
+            data_aux.append(y - min(y_))
 
-            min_x = min(x_)
-            min_y = min(y_)
-            max_x = max(x_)
-            max_y = max(y_)
+        min_x = min(x_)
+        min_y = min(y_)
+        max_x = max(x_)
+        max_y = max(y_)
 
-            x1 = int(min_x * W) - 10
-            y1 = int(min_y * H) - 10
-            x2 = int(max_x * W) - 10
-            y2 = int(max_y * H) - 10
-
+        x1 = int(min_x * W) - 10
+        y1 = int(min_y * H) - 10
+        x2 = int(max_x * W) - 10
+        y2 = int(max_y * H) - 10
 
         # Modelin beklendiği özellik sayısına göre data_aux'u düzenle
-        # Örnek olarak, eğer model 84 özellik bekliyorsa ve data_aux'ta 42 özellik varsa:
-        data_aux.extend([0] * (84 - len(data_aux)))  # Eksik özellikleri sıfırlarla tamamla veya uygun bir yöntemle doldur
+        # Örnek olarak, model 84 özellik bekliyorsa ve data_aux'ta 42 özellik varsa:
+        expected_features = 84  # Modelinizin beklendiği özellik sayısını değiştirin
+
+        # Eksik özellikleri sıfırlarla tamamla veya uygun bir yöntemle doldur
+        if len(data_aux) < expected_features:
+            data_aux.extend([0] * (expected_features - len(data_aux)))
 
         prediction = model.predict([np.asarray(data_aux)])
-
         predicted_character = labels_dict[int(prediction[0])]
 
         cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 0, 0), 2)
