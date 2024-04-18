@@ -1,7 +1,7 @@
 import pickle
 from xgboost import XGBClassifier
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import confusion_matrix, recall_score, f1_score, accuracy_score, average_precision_score, precision_score, ConfusionMatrixDisplay
+from sklearn.metrics import confusion_matrix, recall_score, f1_score, accuracy_score, precision_score, ConfusionMatrixDisplay
 from sklearn.preprocessing import LabelEncoder
 import numpy as np
 import matplotlib.pyplot as plt
@@ -36,6 +36,28 @@ model.fit(x_train, y_train)
 
 # Modelin tahminlerini yapma
 y_predict = model.predict(x_test)
+
+# Decoded Labels for Visualization (optional)
+decoded_y_pred = le.inverse_transform(y_predict)
+decoded_y_test = le.inverse_transform(y_test)
+
+# Confusion Matrix with Decoded Labels (for visualization only)
+cm_decoded = confusion_matrix(decoded_y_pred, decoded_y_test)
+
+recall = recall_score(y_predict, y_test, average='macro', zero_division=0)
+accuracy = accuracy_score(y_predict, y_test)
+precision = precision_score(y_predict, y_test, average='macro')
+f1 = f1_score(y_predict, y_test, average='macro')
+
+print("Recall: {:.4f}, Accuracy: {:.4f}, Precision: {:.4f}, F1 Score: {:.4f}".format(recall, accuracy, precision, f1))
+
+labels_dict = {0: 'A', 1: 'B', 2: 'C', 3: 'D', 4: 'E', 5: 'F', 6: 'G', 7: 'H', 8: 'I', 9: 'J', 10: 'K', 11: 'L',
+               12: 'M', 13: 'N', 14: 'O', 15: 'P', 16: 'Q', 17: 'R', 18: 'S', 19: 'T', 20: 'U', 21: 'V', 22: 'W',
+               23: 'X', 24: 'Y', 25: 'Z'}
+
+disp = ConfusionMatrixDisplay(confusion_matrix=cm_decoded, display_labels=list(labels_dict.values()))
+disp.plot()
+plt.show()
 
 # Eğitimli modeli kaydetme
 f = open('model_xgboost.p', 'wb')
