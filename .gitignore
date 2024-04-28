@@ -1,4 +1,5 @@
 *.pickle
 *.zip
 *.p
+*.keras
 data/
