@@ -5,14 +5,14 @@ import numpy as np
 import PySimpleGUI as sg
 
 # Kamera erişimi için izin iste
-layout_permission = [[sg.Text('Bu uygulama kameranızı kullanacak. İzin vermek istiyor musunuz?')],
-                     [sg.Button('İzin Ver'), sg.Button('İzin Verme')]]
+layout_permission = [[sg.Text('This application will use your camera. Do you want to authorise it?')],
+                     [sg.Button('Allow'), sg.Button('Deny')]]
 
-window_permission = sg.Window('Kamera İzni', layout_permission)
+window_permission = sg.Window('Camera Authorisation', layout_permission)
 
 event, values = window_permission.read()
 
-if event == 'İzin Ver':
+if event == 'Allow':
     window_permission.close()
 
     # Kamera için ana arayüz
@@ -24,7 +24,7 @@ if event == 'İzin Ver':
     window = sg.Window('SynapSign', layout, finalize=True, element_justification='center', location=(0, 0))
 
     # Modelin yüklenmesi
-    model_dict = pickle.load(open('./model.p', 'rb'))
+    model_dict = pickle.load(open('./model_randomforest.p', 'rb'))
     model = model_dict['model']
 
     cap = cv2.VideoCapture(0)
@@ -37,7 +37,7 @@ if event == 'İzin Ver':
 
     labels_dict = {0: 'A', 1: 'B', 2: 'C', 3: 'D', 4: 'E', 5: 'F', 6: 'G', 7: 'H', 8: 'I', 9: 'J', 10: 'K', 11: 'L',
                    12: 'M', 13: 'N', 14: 'O', 15: 'P', 16: 'Q', 17: 'R', 18: 'S', 19: 'T', 20: 'U', 21: 'V', 22: 'W',
-                   23: 'X', 24: 'Y', 25: 'Z', 26:'What a Shame!'}
+                   23: 'X', 24: 'Y', 25: 'Z'}
 
     text_output = ''  # Harflerin tutulacağı metin çıktısı
     prev_letter = None  # Bir önceki harfi tutacak değişken
@@ -123,6 +123,6 @@ if event == 'İzin Ver':
     cv2.destroyAllWindows()
 
 else:
-    sg.popup('Uygulama kapatıldı!', title='Kamera İzni', keep_on_top=True)
+    sg.popup('The app has been closed!', title='Camera Authorisation', keep_on_top=True)
 
 window_permission.close()
